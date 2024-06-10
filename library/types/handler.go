@@ -7,10 +7,7 @@ type FindAllParams struct {
 	StatusID   string
 	SortBy     string
 	SortName   string
-	BusinessID string
-	OutletID   string
 	DataFinder string
-	Outlets    []string
 }
 
 // result all

@@ -1,5 +1,5 @@
 CREATE TABLE premium_packages (
-  id VARCHAR(255) DEFAULT UUID() NOT NULL,
+  id VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
   description VARCHAR(255) DEFAULT "",
   price DECIMAL(10, 2) NOT NULL,

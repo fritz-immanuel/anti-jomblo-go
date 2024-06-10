@@ -78,11 +78,31 @@ func (h *UserPremiumHandler) Create(c *gin.Context) {
 			return err
 		}
 
-		obj.ExpiredAt = now.AddDate(0, premiumPackageData.Duration, 0)
-
-		data, err = h.UserPremiumUsecase.Create(c, obj)
+		// check if user is already Premium
+		var premiumParams models.FindAllUserPremiumParams
+		premiumParams.UserID = obj.UserID
+		premiumParams.NotExpired = 1
+		premiumParams.FindAllParams.Size = 1
+		premiumParams.FindAllParams.Page = 1
+		userPremiumData, err := h.UserPremiumUsecase.FindAll(c, premiumParams)
 		if err != nil {
 			return err
+		}
+
+		if len(userPremiumData) > 0 {
+			userPremiumData[0].ExpiredAt = userPremiumData[0].ExpiredAt.AddDate(0, premiumPackageData.Duration, 0)
+
+			data, err = h.UserPremiumUsecase.Update(c, userPremiumData[0].ID, *userPremiumData[0])
+			if err != nil {
+				return err
+			}
+		} else {
+			obj.ExpiredAt = now.AddDate(0, premiumPackageData.Duration, 0)
+
+			data, err = h.UserPremiumUsecase.Create(c, obj)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

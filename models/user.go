@@ -31,7 +31,7 @@ type User struct {
 	CountryCallingCode string    `json:"CountryCallingCode" db:"country_calling_code" validate:"required"`
 	PhoneNumber        string    `json:"PhoneNumber" db:"phone_number" validate:"required"`
 	Password           string    `json:"Password" db:"password" validate:"required"`
-	GenderID           int       `json:"GenderID" db:"gender_id"`
+	GenderID           int       `json:"GenderID" db:"gender_id" validate:"required"`
 	BirthDate          time.Time `json:"BirthDate" db:"birth_date" validate:"required"`
 	Height             int       `json:"Height" db:"height"`
 	AboutMe            string    `json:"AboutMe" db:"about_me"`
@@ -40,6 +40,22 @@ type User struct {
 	Status   Status `json:"Status"`
 
 	Gender *INTIDNameTemplate `json:"Gender"`
+
+	Pictures []*UserPicture `json:"Pictures"`
+}
+
+type UserUpdate struct {
+	ID                 string    `json:"ID" db:"id"`
+	Name               string    `json:"Name" db:"name" validate:"required"`
+	Email              string    `json:"Email" db:"email" validate:"required"`
+	CountryCallingCode string    `json:"CountryCallingCode" db:"country_calling_code" validate:"required"`
+	PhoneNumber        string    `json:"PhoneNumber" db:"phone_number" validate:"required"`
+	GenderID           int       `json:"GenderID" db:"gender_id" validate:"required"`
+	BirthDate          time.Time `json:"BirthDate" db:"birth_date" validate:"required"`
+	Height             int       `json:"Height" db:"height"`
+	AboutMe            string    `json:"AboutMe" db:"about_me"`
+
+	StatusID string `json:"StatusID" db:"status_id"`
 
 	Pictures []*UserPicture `json:"Pictures"`
 }

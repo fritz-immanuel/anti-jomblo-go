@@ -10,6 +10,7 @@ import (
 	"anti-jomblo-go/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 
 	"github.com/jmoiron/sqlx"
@@ -72,7 +73,7 @@ func (u *PremiumPackageUsecase) Create(ctx *gin.Context, obj models.PremiumPacka
 	}
 
 	data := models.PremiumPackage{
-		// ID:          uuid.New().String(),
+		ID:          uuid.New().String(),
 		Name:        obj.Name,
 		Description: obj.Description,
 		Price:       obj.Price,

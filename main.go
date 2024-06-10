@@ -1,37 +1,24 @@
 package main
 
 import (
-	"flag"
+	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"anti-jomblo-go/configs"
 	"anti-jomblo-go/databases"
 	"anti-jomblo-go/library/data"
 	"anti-jomblo-go/src/routes"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-
-	"github.com/pkg/errors"
 )
-
-var loc *time.Location
-
-type stackTracer interface {
-	StackTrace() errors.StackTrace
-}
-
-var addr = flag.String("addr", ":8080", "http service address")
-
-// Init function for initialize config
-func init() {
-
-}
 
 // Main function for start entry golang
 func main() {
+	gin.SetMode(gin.TestMode)
+
 	os.Setenv("TZ", "Asia/Jakarta")
 
 	config, err := configs.GetConfiguration()
@@ -53,9 +40,6 @@ func main() {
 
 	databases.MigrateUp()
 
-	if config.ActiveWorker == 1 {
-		// worker here
-	}
-
+	fmt.Println("Server Running...")
 	routes.RegisterRoutes(db, config, dataManager)
 }

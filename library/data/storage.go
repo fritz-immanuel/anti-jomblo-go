@@ -348,7 +348,6 @@ func (r *MySQLStorage) Insert(ctx *gin.Context, elem interface{}) (*sql.Result, 
 
 func (r *MySQLStorage) InsertTrail(ctx *gin.Context, id string) (*sql.Result, error) {
 	currentUserID := appcontext.UserID(ctx)
-	currentUserName := appcontext.UserName(ctx)
 
 	db := r.db
 	tx, ok := TxFromContext(ctx)
@@ -358,8 +357,8 @@ func (r *MySQLStorage) InsertTrail(ctx *gin.Context, id string) (*sql.Result, er
 
 	created_at := library.UTCPlus7().Format("2006-01-02 15:04:05")
 	query := fmt.Sprintf(`
-  INSERT INTO user_actions(id, user_id, user_name, table_name, action, created_at, ref_id)
-  VALUES (UUID(), '%s', '%s', '%s', 'Create', :created_at, '%s')`, *currentUserID, *currentUserName, r.tableName, id)
+  INSERT INTO user_actions(id, user_id, table_name, action, created_at, ref_id)
+  VALUES (UUID(), '%s', '%s', 'Create', :created_at, '%s')`, *currentUserID, r.tableName, id)
 	statement, err := db.PrepareNamed(query)
 	if err != nil {
 		return nil, err
@@ -734,7 +733,6 @@ func (r *MySQLStorage) Update(ctx *gin.Context, elem interface{}) error {
 
 func (r *MySQLStorage) UpdateTrail(ctx *gin.Context, existingElem interface{}, elem interface{}, id interface{}) (*sql.Result, error) {
 	currentUserID := appcontext.UserID(ctx)
-	currentUserName := appcontext.UserName(ctx)
 
 	db := r.db
 	tx, ok := TxFromContext(ctx)
@@ -743,8 +741,8 @@ func (r *MySQLStorage) UpdateTrail(ctx *gin.Context, existingElem interface{}, e
 	}
 	created_at := library.UTCPlus7().Format("2006-01-02 15:04:05")
 	statement, err := db.PrepareNamed(fmt.Sprintf(`
-    INSERT INTO user_actions(id, user_id, user_name, table_name,action,created_at, ref_id)
-    VALUES (UUID(), '%s', '%s', '%s', '%s', :created_at, :id)`, *currentUserID, *currentUserName, r.tableName, "Update"))
+    INSERT INTO user_actions(id, user_id, table_name,action,created_at, ref_id)
+    VALUES (UUID(), '%s', '%s', '%s', :created_at, :id)`, *currentUserID, r.tableName, "Update"))
 	if err != nil {
 		return nil, err
 	}
@@ -763,7 +761,6 @@ func (r *MySQLStorage) UpdateTrail(ctx *gin.Context, existingElem interface{}, e
 
 func (r *MySQLStorage) UpdateStatus(ctx *gin.Context, id string, status_code string) error {
 	currentUserID := appcontext.UserID(ctx)
-	currentUserName := appcontext.UserName(ctx)
 
 	db := r.db
 	tx, ok := TxFromContext(ctx)
@@ -799,8 +796,8 @@ func (r *MySQLStorage) UpdateStatus(ctx *gin.Context, id string, status_code str
 	}
 
 	statementTrail, err := db.PrepareNamed(fmt.Sprintf(`
-    INSERT INTO user_actions(id, user_id, user_name, table_name, action, action_value, created_at, ref_id)
-    VALUES (UUID(), '%s', '%s', '%s', '%s', '%s', :updated_at, '%s')`, *currentUserID, *currentUserName, r.tableName, "Update Status", status_code, id))
+    INSERT INTO user_actions(id, user_id, table_name, action, action_value, created_at, ref_id)
+    VALUES (UUID(), '%s', '%s', '%s', '%s', :updated_at, '%s')`, *currentUserID, r.tableName, "Update Status", status_code, id))
 	if err != nil {
 		return err
 	}

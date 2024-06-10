@@ -128,7 +128,7 @@ func (s UserPremiumRepository) Find(ctx *gin.Context, id string) (*models.UserPr
 
 func (s UserPremiumRepository) Create(ctx *gin.Context, obj *models.UserPremium) (*models.UserPremium, *types.Error) {
 	data := models.UserPremium{}
-	result, err := s.repository.Insert(ctx, obj)
+	_, err := s.repository.Insert(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".UserPremiumStorage->Create()",
@@ -139,8 +139,7 @@ func (s UserPremiumRepository) Create(ctx *gin.Context, obj *models.UserPremium)
 		}
 	}
 
-	lastID, _ := (*result).LastInsertId()
-	err = s.repository.FindByID(ctx, &data, lastID)
+	err = s.repository.FindByID(ctx, &data, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".UserPremiumStorage->Create()",
@@ -150,6 +149,7 @@ func (s UserPremiumRepository) Create(ctx *gin.Context, obj *models.UserPremium)
 			Type:       "mysql-error",
 		}
 	}
+
 	return &data, nil
 }
 

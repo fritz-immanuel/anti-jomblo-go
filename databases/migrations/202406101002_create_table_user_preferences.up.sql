@@ -1,5 +1,5 @@
 CREATE TABLE user_preferences (
-  id VARCHAR(255) DEFAULT UUID() NOT NULL,
+  id VARCHAR(255) NOT NULL,
   user_id VARCHAR(255) NOT NULL,
 
   search_distance TINYINT DEFAULT 50,

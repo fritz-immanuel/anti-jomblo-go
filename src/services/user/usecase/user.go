@@ -14,6 +14,7 @@ import (
 	"anti-jomblo-go/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 
 	"github.com/jmoiron/sqlx"
@@ -108,13 +109,13 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 	}
 
 	data := models.User{
-		// ID:                 uuid.New().String(),
+		ID:                 uuid.New().String(),
 		Name:               obj.Name,
 		Email:              obj.Email,
 		CountryCallingCode: obj.CountryCallingCode,
 		PhoneNumber:        obj.PhoneNumber,
 		Password:           obj.Password,
-		Gender:             obj.Gender,
+		GenderID:           obj.GenderID,
 		BirthDate:          obj.BirthDate,
 		Height:             obj.Height,
 		AboutMe:            obj.AboutMe,
@@ -139,7 +140,7 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 	return result, nil
 }
 
-func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*models.User, *types.Error) {
+func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.UserUpdate) (*models.User, *types.Error) {
 	validate := validator.New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -170,7 +171,7 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*mod
 	data.Email = obj.Email
 	data.CountryCallingCode = obj.CountryCallingCode
 	data.PhoneNumber = obj.PhoneNumber
-	data.Gender = obj.Gender
+	data.GenderID = obj.GenderID
 	data.BirthDate = obj.BirthDate
 	data.Height = obj.Height
 	data.AboutMe = obj.AboutMe
@@ -244,7 +245,7 @@ func (u *UserUsecase) Login(ctx *gin.Context, params models.FindAllUserParams) (
 
 	credentials := library.Credential{ID: result[0].ID, Email: result[0].Email, Type: "Mobile"}
 
-	token, errorJwtSign := library.JwtSignString(credentials)
+	token, errorJwtSign := library.JwtSignMobileString(credentials)
 	if errorJwtSign != nil {
 		return nil, &types.Error{
 			Error:      errorJwtSign,

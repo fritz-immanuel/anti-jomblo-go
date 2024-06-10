@@ -226,7 +226,7 @@ func (s UserSwipeRepository) Find(ctx *gin.Context, id string) (*models.UserSwip
 
 func (s UserSwipeRepository) Create(ctx *gin.Context, obj *models.UserSwipe) (*models.UserSwipe, *types.Error) {
 	data := models.UserSwipe{}
-	result, err := s.repository.Insert(ctx, obj)
+	_, err := s.repository.Insert(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".UserSwipeStorage->Create()",
@@ -237,8 +237,7 @@ func (s UserSwipeRepository) Create(ctx *gin.Context, obj *models.UserSwipe) (*m
 		}
 	}
 
-	lastID, _ := (*result).LastInsertId()
-	err = s.repository.FindByID(ctx, &data, lastID)
+	err = s.repository.FindByID(ctx, &data, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".UserSwipeStorage->Create()",

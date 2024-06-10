@@ -158,10 +158,14 @@ func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.
 			PhoneNumber:        v.PhoneNumber,
 			Password:           v.Password,
 			GenderID:           v.GenderID,
-			BirthDate:          v.BirthDate,
-			Height:             v.Height,
-			AboutMe:            v.AboutMe,
-			StatusID:           v.StatusID,
+			Gender: &models.INTIDNameTemplate{
+				ID:   v.GenderID,
+				Name: v.GenderName,
+			},
+			BirthDate: v.BirthDate,
+			Height:    v.Height,
+			AboutMe:   v.AboutMe,
+			StatusID:  v.StatusID,
 			Status: models.Status{
 				ID:   v.StatusID,
 				Name: v.StatusName,
@@ -254,7 +258,7 @@ func (s UserRepository) Count(ctx *gin.Context, params models.FindAllUserParams)
 
 func (s UserRepository) Create(ctx *gin.Context, obj *models.User) (*models.User, *types.Error) {
 	data := models.User{}
-	result, err := s.repository.Insert(ctx, obj)
+	_, err := s.repository.Insert(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".UserStorage->Create()",
@@ -265,8 +269,7 @@ func (s UserRepository) Create(ctx *gin.Context, obj *models.User) (*models.User
 		}
 	}
 
-	lastID, _ := (*result).LastInsertId()
-	err = s.repository.FindByID(ctx, &data, lastID)
+	err = s.repository.FindByID(ctx, &data, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".UserStorage->Create()",
@@ -383,10 +386,10 @@ func (s UserRepository) FindAllForDating(ctx *gin.Context, params models.FindAll
     genders.name gender_name
   FROM users
   JOIN genders ON genders.id = users.gender_id
-  LEFT JOIN user_dates ON user_dates.display_user_id = users.user_id
-    AND DATE(user_dates.created_at) = DATE(UTC_TIMESTAMP + INTERVAL 7 HOUR)
-    AND user_dates.user_id = "%s"
-    AND user_dates.id IS NULL
+  LEFT JOIN user_swipes ON user_swipes.display_user_id = users.id
+    AND DATE(user_swipes.created_at) = DATE(UTC_TIMESTAMP + INTERVAL 7 HOUR)
+    AND user_swipes.user_id = "%s"
+    AND user_swipes.id IS NULL
   WHERE %s
   `, params.UserID, where)
 
@@ -457,10 +460,10 @@ func (s UserRepository) CountForDating(ctx *gin.Context, params models.FindAllUs
     genders.name gender_name
   FROM users
   JOIN genders ON genders.id = users.gender_id
-  LEFT JOIN user_dates ON user_dates.display_user_id = users.user_id
-    AND DATE(user_dates.created_at) = DATE(UTC_TIMESTAMP + INTERVAL 7 HOUR)
-    AND user_dates.user_id = "%s"
-    AND user_dates.id IS NULL
+  LEFT JOIN user_swipes ON user_swipes.display_user_id = users.id
+    AND DATE(user_swipes.created_at) = DATE(UTC_TIMESTAMP + INTERVAL 7 HOUR)
+    AND user_swipes.user_id = "%s"
+    AND user_swipes.id IS NULL
   WHERE %s
   `, params.UserID, where)
 

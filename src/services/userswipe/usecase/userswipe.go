@@ -9,6 +9,7 @@ import (
 	"anti-jomblo-go/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 
 	"github.com/jmoiron/sqlx"
@@ -62,7 +63,7 @@ func (u *UserSwipeUsecase) Count(ctx *gin.Context, params models.FindAllUserSwip
 
 func (u *UserSwipeUsecase) Create(ctx *gin.Context, obj models.UserSwipe) (*models.UserSwipe, *types.Error) {
 	data := models.UserSwipe{
-		// ID:            uuid.New().String(),
+		ID:            uuid.New().String(),
 		UserID:        obj.UserID,
 		DisplayUserID: obj.DisplayUserID,
 		ActionID:      obj.ActionID,

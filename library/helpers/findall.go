@@ -1,14 +1,12 @@
 package helpers
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
 
-	"anti-jomblo-go/library/appcontext"
 	"anti-jomblo-go/library/types"
 
 	"github.com/gin-gonic/gin"
@@ -70,30 +68,8 @@ func FilterFindAll(c *gin.Context) (string, string) {
 // find all multifunction
 func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 	var statusID string
-	var businessID string
-	var outletID string
-	var Outlets []string
 	var sort string
-	var op string
 
-	userType := appcontext.Type(c)
-	if userType != nil {
-		if *userType != "Web" {
-			businessID = fmt.Sprintf("%d", appcontext.BusinessID(c))
-		}
-
-	}
-
-	if c.Query("BusinessID") != "" {
-		businessID = fmt.Sprintf("%v", c.Query("BusinessID"))
-	}
-
-	outletID = fmt.Sprintf("%d", appcontext.OutletID(c))
-	if c.Query("OutletID") != "" {
-		outletID = fmt.Sprintf("%v", c.Query("OutletID"))
-	}
-
-	findallparams := types.FindAllParams{-1, 10, "", "code", "desc", "", "", "", Outlets}
 	sortName := Underscore(c.Query("SortName"))
 	sortBy := strings.ToLower(c.Query("SortBy"))
 
@@ -102,51 +78,11 @@ func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 	}
 
 	if c.Query("SortBy") == "" {
-		sortBy = "desc"
+		sortBy = "DESC"
 	}
 
 	if c.Query("StatusID") == "" {
-		statusID = c.Query("Status ID")
-	} else {
 		statusID = c.Query("StatusID")
-	}
-
-	explodeOutlets := strings.Split(outletID, ",")
-	for _, vOutlet := range explodeOutlets {
-		if vOutlet != "-1" && vOutlet != "" {
-			Outlets = append(Outlets, vOutlet)
-		}
-	}
-
-	explodeStatus := strings.Split(statusID, ",")
-	for _, vStatus := range explodeStatus {
-		if vStatus != "-1" && vStatus != "" {
-			JoinStringStatus := strings.Join(explodeStatus, ",")
-			statusID = "status_id IN (" + JoinStringStatus + ")"
-			break
-		} else {
-			statusID = ""
-			break
-		}
-	}
-
-	bID := MultiValueFilterCheck(businessID) // make sure its all int
-	explodeBusiness := strings.Split(bID, ",")
-	for _, b := range explodeBusiness {
-		if b != "-1" && b != "" && b != "0" {
-			JoinStringBusiness := strings.Join(explodeBusiness, ",")
-			businessID = "business_id IN (" + JoinStringBusiness + ")"
-			break
-		} else {
-			businessID = ""
-			break
-		}
-	}
-
-	if outletID != "-1" && outletID != "" && outletID != "0" {
-		outletID = op + " outlet_id = " + outletID
-	} else {
-		outletID = ""
 	}
 
 	if sortName != "" {
@@ -156,7 +92,8 @@ func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 	dataFinder := DataFinder(c.Query("KeywordName"), c.Query("Keyword"))
 	page, _ := strconv.Atoi(c.Query("Page"))
 	size, _ := strconv.Atoi(c.Query("Size"))
-	findallparams = types.FindAllParams{Page: page, Size: size, StatusID: statusID, DataFinder: dataFinder, SortName: sortName, SortBy: sort, BusinessID: businessID, OutletID: outletID, Outlets: Outlets}
+	findallparams := types.FindAllParams{Page: page, Size: size, StatusID: statusID, DataFinder: dataFinder, SortName: sortName, SortBy: sort}
+
 	return findallparams
 }
 func sanitize(text string) string {
@@ -168,9 +105,7 @@ func DataFinder(keywordname string, keyword string) string {
 	str := "1=1"
 	if keywordname != "" && keyword != "" {
 		ExplodeParam := strings.Split(keywordname, ",")
-		// ExplodeKeyword := strings.Split(keyword, " ")
-		// for _, vKeyword := range ExplodeKeyword {
-		str += " and ( "
+		str += " AND ( "
 		strTmp := ""
 		for _, vParam := range ExplodeParam {
 			date := strings.Contains(vParam, "date")
@@ -190,12 +125,11 @@ func DataFinder(keywordname string, keyword string) string {
 				strTmp += " or "
 			}
 
-			strTmp += " " + sanitize(Underscore(vParam)) + " like '%" + keyword + "%' "
+			strTmp += " " + sanitize(Underscore(vParam)) + " LIKE '%" + keyword + "%' "
 		}
 		str += strTmp
 		str += " )"
 	}
-	// }
 
 	return str
 }
@@ -209,18 +143,14 @@ func GetSortBy(sortName string, sortBy string) string {
 	checkMultipleSortBy := strings.Contains(sortBy, ",")
 	if checkMultipleSortName {
 		explodeSortName := strings.Split(sortName, ",")
-		for _, vSortName := range explodeSortName {
-			sortNameArr = append(sortNameArr, vSortName)
-		}
+		sortNameArr = append(sortNameArr, explodeSortName...)
 	} else {
 		sortNameArr = append(sortNameArr, sortName)
 	}
 
 	if checkMultipleSortBy {
 		explodeSortBy := strings.Split(sortBy, ",")
-		for _, vSortBy := range explodeSortBy {
-			sortByArr = append(sortByArr, vSortBy)
-		}
+		sortByArr = append(sortByArr, explodeSortBy...)
 	} else {
 		sortByArr = append(sortByArr, sortBy)
 	}
@@ -237,9 +167,8 @@ func GetSortBy(sortName string, sortBy string) string {
 
 		if lenSortName-1 != k {
 			str = str + ","
-		} else {
-			str = str
 		}
+
 		sort = sort + str
 	}
 

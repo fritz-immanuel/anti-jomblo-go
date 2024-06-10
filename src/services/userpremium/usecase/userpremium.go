@@ -9,6 +9,7 @@ import (
 	"anti-jomblo-go/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 
 	"github.com/jmoiron/sqlx"
@@ -62,7 +63,7 @@ func (u *UserPremiumUsecase) Count(ctx *gin.Context, params models.FindAllUserPr
 
 func (u *UserPremiumUsecase) Create(ctx *gin.Context, obj models.UserPremium) (*models.UserPremium, *types.Error) {
 	data := models.UserPremium{
-		// ID:        uuid.New().String(),
+		ID:        uuid.New().String(),
 		UserID:    obj.UserID,
 		BoughtAt:  obj.BoughtAt,
 		ExpiredAt: obj.ExpiredAt,

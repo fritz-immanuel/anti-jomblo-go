@@ -13,7 +13,7 @@ type Usecase interface {
 	Find(*gin.Context, string) (*models.User, *types.Error)
 	Count(*gin.Context, models.FindAllUserParams) (int, *types.Error)
 	Create(*gin.Context, models.User) (*models.User, *types.Error)
-	Update(*gin.Context, string, models.User) (*models.User, *types.Error)
+	Update(*gin.Context, string, models.UserUpdate) (*models.User, *types.Error)
 
 	FindStatus(*gin.Context) ([]*models.Status, *types.Error)
 	UpdateStatus(*gin.Context, string, string) (*models.User, *types.Error)

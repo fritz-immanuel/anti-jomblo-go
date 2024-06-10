@@ -14,19 +14,13 @@ const (
 	androidPOSAppMinimumVersion = "ANDROID_POS_APP_MINIMUM_VERSION"
 	iosPOSAppMinimumVersion     = "IOS_POS_APP_MINIMUM_VERSION"
 
-	appUrl             = "APP_URL"
-	portApps           = "PORT_APPS"
+	appUrl   = "APP_URL"
+	portApps = "PORT_APPS"
+
+	serverName = "SERVER_NAME"
+
 	configFileLocation = "CONF_ENV_LOCATION"
 	dbConnectionString = "DB_CONNECTION_STRING"
-
-	gBucketPrivate = "GBUCKET_PRIVATE"
-	gBucketPublic  = "GBUCKET_PUBLIC"
-	gBucketUrl     = "GBUCKET_URL"
-
-	mjSenderEmail   = "MJ_SENDER_EMAIL"
-	mjSenderName    = "MJ_SENDER_NAME"
-	mjApikeyPrivate = "MJ_APIKEY_PRIVATE"
-	mjApikeyPublic  = "MJ_APIKEY_PUBLIC"
 
 	redisAddr     = "REDIS_ADDR"
 	redisDB       = "REDIS_DB"
@@ -34,12 +28,6 @@ const (
 	redisTimeOut  = "REDIS_TIME_OUT"
 
 	jwtTimeOut = "JWT_TIME_OUT"
-
-	sendWhatsappAPI   = "SEND_WHATSAPP_API"
-	sendWhatsappToken = "SEND_WHATSAPP_TOKEN"
-
-	slackAlertChannel = "SLACK_ALERT_CHANNEL"
-	slackToken        = "SLACK_TOKEN"
 
 	whitelistedIps = "WHITELISTED_IPS"
 
@@ -67,16 +55,12 @@ type Config struct {
 	// DB
 	DBConnectionString string
 
-	// Mailjet
-	MjSenderEmail   string
-	MjSenderName    string
-	MjApikeyPrivate string
-	MjApikeyPublic  string
-
 	// Misc
-	AppURL         string
-	PortApps       string
-	WhitelistedIps string
+	AppURL             string
+	PortApps           string
+	ServerName         string
+	WhitelistedIps     string
+	ConfigFileLocation string
 
 	// Redis
 	RedisAddr     string
@@ -85,14 +69,6 @@ type Config struct {
 	RedisTimeOut  int
 
 	JwtTimeOut int
-
-	// WA
-	SendWhatsappAPI   string
-	SendWhatsappToken string
-
-	// Slack
-	SlackAlertChannel string
-	SlackToken        string
 
 	// Vultr
 	VultrAccessKey string
@@ -156,11 +132,6 @@ func GetConfiguration() (*Config, error) {
 
 		DBConnectionString: result[dbConnectionString].(string),
 
-		MjSenderEmail:   result[mjSenderEmail].(string),
-		MjSenderName:    result[mjSenderName].(string),
-		MjApikeyPrivate: result[mjApikeyPrivate].(string),
-		MjApikeyPublic:  result[mjApikeyPublic].(string),
-
 		AppURL:         result[appUrl].(string),
 		PortApps:       result[portApps].(string),
 		WhitelistedIps: result[whitelistedIps].(string),
@@ -171,12 +142,6 @@ func GetConfiguration() (*Config, error) {
 		RedisTimeOut:  redisTimeOut,
 
 		JwtTimeOut: jwtTimeOut,
-
-		SendWhatsappAPI:   result[sendWhatsappAPI].(string),
-		SendWhatsappToken: result[sendWhatsappToken].(string),
-
-		SlackAlertChannel: result[slackAlertChannel].(string),
-		SlackToken:        result[slackToken].(string),
 
 		VultrAccessKey: result[vultrAccessKey].(string),
 		VultrBucket:    result[vultrBucket].(string),

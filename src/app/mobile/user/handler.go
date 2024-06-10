@@ -49,17 +49,17 @@ func (h UserHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router 
 
 	rs := v.Group("/users")
 	{
-		rs.GET("", middleware.Auth, base.FindAll)
-		rs.GET("/:id", middleware.Auth, base.Find)
-		rs.PUT("/:id", middleware.Auth, base.Update)
-		rs.PUT("/status", middleware.Auth, base.UpdateStatus)
+		// rs.GET("", middleware.AuthMobile, base.FindAll)
+		rs.GET("/:id", middleware.AuthMobile, base.Find)
+		rs.PUT("/:id", middleware.AuthMobile, base.Update)
+		// rs.PUT("/status", middleware.AuthMobile, base.UpdateStatus)
 
 		rs.POST("register", base.Create)
 		rs.POST("auth/login", base.Login)
 
-		rs.GET("date", middleware.Auth, base.FindAllForDating)
+		rs.GET("date", middleware.AuthMobile, base.FindAllForDating)
 
-		rs.PUT("/:id/password", middleware.Auth, base.UpdatePassword)
+		rs.PUT("/:id/password", middleware.AuthMobile, base.UpdatePassword)
 	}
 
 	status := v.Group("/statuses")
@@ -111,6 +111,8 @@ func (h *UserHandler) Find(c *gin.Context) {
 		return
 	}
 
+	result.Password = ""
+
 	dataresponse := types.Result{Status: "Success", StatusCode: http.StatusOK, Message: "Data shown successfuly", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
@@ -121,10 +123,23 @@ func (h *UserHandler) Find(c *gin.Context) {
 
 func (h *UserHandler) Update(c *gin.Context) {
 	var err *types.Error
-	var obj models.User
+	var obj models.UserUpdate
 	var data *models.User
 
 	id := c.Param("id")
+
+	if !library.IsEmailValid(c.PostForm("Email")) {
+		err := &types.Error{
+			Path:       ".UserHandler->Update()",
+			Message:    "Email is not valid",
+			Error:      fmt.Errorf("email is not valid"),
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
 	obj.Name = c.PostForm("Name")
 	obj.Email = c.PostForm("Email")
 	obj.CountryCallingCode = c.PostForm("CountryCallingCode")
@@ -152,6 +167,9 @@ func (h *UserHandler) Update(c *gin.Context) {
 		if err != nil {
 			return err
 		}
+
+		data.Password = ""
+
 		return nil
 	})
 
@@ -270,6 +288,8 @@ func (h *UserHandler) Create(c *gin.Context) {
 			return err
 		}
 
+		data.Password = ""
+
 		return nil
 	})
 
@@ -297,10 +317,22 @@ func (h *UserHandler) Login(c *gin.Context) {
 	email := c.PostForm("Email")
 	password := fmt.Sprintf("%x", hash.Sum(nil))
 
+	if !library.IsEmailValid(c.PostForm("Email")) {
+		err := &types.Error{
+			Path:       ".UserHandler->Login()",
+			Message:    "Email is not valid",
+			Error:      fmt.Errorf("email is not valid"),
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
 	var params models.FindAllUserParams
 	params.Email = email
 	params.Password = password
-	params.FindAllParams.StatusID = "status_id = 1"
+	params.FindAllParams.StatusID = `status_id = "1"`
 
 	datas, err := h.UserUsecase.Login(c, params)
 	if err != nil {
@@ -390,6 +422,8 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 			return err
 		}
 
+		data.Password = ""
+
 		return nil
 	})
 
@@ -415,6 +449,7 @@ func (h *UserHandler) FindAllForDating(c *gin.Context) {
 	page, size := helpers.FilterFindAll(c)
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
+	params.UserID = *appcontext.UserID(c)
 	datas, err := h.UserUsecase.FindAllForDating(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {

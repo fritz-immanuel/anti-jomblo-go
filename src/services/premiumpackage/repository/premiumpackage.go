@@ -46,7 +46,7 @@ func (s PremiumPackageRepository) FindAll(ctx *gin.Context, params models.FindAl
 
 	query := fmt.Sprintf(`
   SELECT
-    premium_packages.id, premium_packages.name, premium_packages.description, premium_packages.price, premium_packages.duration
+    premium_packages.id, premium_packages.name, premium_packages.description, premium_packages.price, premium_packages.duration,
     premium_packages.status_id, status.name status_name
   FROM premium_packages
   JOIN status ON status.id = premium_packages.status_id
@@ -94,7 +94,7 @@ func (s PremiumPackageRepository) Find(ctx *gin.Context, id string) (*models.Pre
 
 	query := `
   SELECT
-    premium_packages.id, premium_packages.name, premium_packages.description, premium_packages.price, premium_packages.duration
+    premium_packages.id, premium_packages.name, premium_packages.description, premium_packages.price, premium_packages.duration,
     premium_packages.status_id, status.name status_name
   FROM premium_packages
   JOIN status ON status.id = premium_packages.status_id
@@ -140,7 +140,7 @@ func (s PremiumPackageRepository) Find(ctx *gin.Context, id string) (*models.Pre
 
 func (s PremiumPackageRepository) Create(ctx *gin.Context, obj *models.PremiumPackage) (*models.PremiumPackage, *types.Error) {
 	data := models.PremiumPackage{}
-	result, err := s.repository.Insert(ctx, obj)
+	_, err := s.repository.Insert(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".PremiumPackageStorage->Create()",
@@ -151,8 +151,7 @@ func (s PremiumPackageRepository) Create(ctx *gin.Context, obj *models.PremiumPa
 		}
 	}
 
-	lastID, _ := (*result).LastInsertId()
-	err = s.repository.FindByID(ctx, &data, lastID)
+	err = s.repository.FindByID(ctx, &data, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".PremiumPackageStorage->Create()",

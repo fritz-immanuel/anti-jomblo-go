@@ -1,5 +1,5 @@
 CREATE TABLE user_matches (
-  id VARCHAR(255) DEFAULT UUID() NOT NULL,
+  id VARCHAR(255) NOT NULL,
   user_id VARCHAR(255) NOT NULL,
   display_user_id VARCHAR(255) NOT NULL,
 
