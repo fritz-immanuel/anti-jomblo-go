@@ -274,13 +274,13 @@ func (h *UserHandler) Login(c *gin.Context) {
 	hash := md5.New()
 	io.WriteString(hash, c.PostForm("Password"))
 
-	username := c.PostForm("Username")
+	email := c.PostForm("Email")
 	password := fmt.Sprintf("%x", hash.Sum(nil))
 
 	var params models.FindAllUserParams
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
-	params.Username = username
+	params.Email = email
 	params.Password = password
 	params.FindAllParams.StatusID = "status_id = 1"
 

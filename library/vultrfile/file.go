@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
-	"luxe-beb-go/configs"
+	"anti-jomblo-go/configs"
 )
 
 func UploadFile(file *bytes.Reader, dst string) error {
