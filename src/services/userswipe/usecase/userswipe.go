@@ -51,13 +51,13 @@ func (u *UserSwipeUsecase) Find(ctx *gin.Context, id string) (*models.UserSwipe,
 }
 
 func (u *UserSwipeUsecase) Count(ctx *gin.Context, params models.FindAllUserSwipeParams) (int, *types.Error) {
-	result, err := u.userswipeRepo.FindAll(ctx, params)
+	result, err := u.userswipeRepo.Count(ctx, params)
 	if err != nil {
 		err.Path = ".UserSwipeUsecase->Count()" + err.Path
 		return 0, err
 	}
 
-	return len(result), nil
+	return result, nil
 }
 
 func (u *UserSwipeUsecase) Create(ctx *gin.Context, obj models.UserSwipe) (*models.UserSwipe, *types.Error) {

@@ -27,6 +27,7 @@ type FindAllUserSwipeParams struct {
 	FindAllParams types.FindAllParams
 	StartDate     *time.Time
 	EndDate       *time.Time
+	Date          *time.Time
 	UserID        string
 	DisplayUserID string
 	ActionID      int

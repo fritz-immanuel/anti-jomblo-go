@@ -1,11 +1,13 @@
 package userswipe
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
 
+	"anti-jomblo-go/library"
 	"anti-jomblo-go/middleware"
 	"anti-jomblo-go/models"
 	"anti-jomblo-go/src/services/userswipe"
@@ -45,7 +47,6 @@ func (h UserSwipeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, ro
 }
 
 func (h *UserSwipeHandler) Create(c *gin.Context) {
-	var err *types.Error
 	var obj models.UserSwipe
 	var data *models.UserSwipe
 
@@ -53,7 +54,26 @@ func (h *UserSwipeHandler) Create(c *gin.Context) {
 	obj.DisplayUserID = c.PostForm("DisplayUserID")
 	obj.ActionID, _ = strconv.Atoi(c.PostForm("ActionID"))
 
+	now := library.UTCPlus7()
+
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		var countParams models.FindAllUserSwipeParams
+		countParams.UserID = obj.UserID
+		countParams.Date = &now
+		swipesToday, err := h.UserSwipeUsecase.Count(c, countParams)
+		if err != nil {
+			return err
+		}
+
+		if swipesToday == 10 {
+			return &types.Error{
+				StatusCode: http.StatusForbidden,
+				Type:       "limit-exceeded",
+				Message:    "You are limited to but ten swipes per diurnal cycle",
+				Error:      fmt.Errorf(`swipe exceeded limit`),
+			}
+		}
+
 		data, err = h.UserSwipeUsecase.Create(c, obj)
 		if err != nil {
 			return err
