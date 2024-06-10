@@ -17,14 +17,15 @@ import (
 	"anti-jomblo-go/middleware"
 	"anti-jomblo-go/models"
 	"anti-jomblo-go/src/services/user"
-	"anti-jomblo-go/src/services/user/repository"
-	"anti-jomblo-go/src/services/user/usecase"
 
 	"github.com/gin-gonic/gin"
 
 	"anti-jomblo-go/library/data"
 	"anti-jomblo-go/library/http/response"
 	"anti-jomblo-go/library/types"
+
+	userRepository "anti-jomblo-go/src/services/user/repository"
+	userUsecase "anti-jomblo-go/src/services/user/usecase"
 )
 
 var ()
@@ -37,12 +38,12 @@ type UserHandler struct {
 }
 
 func (h UserHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, v *gin.RouterGroup) {
-	userRepo := repository.NewUserRepository(
+	userRepo := userRepository.NewUserRepository(
 		data.NewMySQLStorage(db, "users", models.User{}, data.MysqlConfig{}),
 		data.NewMySQLStorage(db, "status", models.Status{}, data.MysqlConfig{}),
 	)
 
-	uUser := usecase.NewUserUsecase(db, &userRepo)
+	uUser := userUsecase.NewUserUsecase(db, &userRepo)
 
 	base := &UserHandler{UserUsecase: uUser, dataManager: dataManager}
 

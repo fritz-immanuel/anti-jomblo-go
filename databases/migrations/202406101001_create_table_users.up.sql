@@ -17,6 +17,5 @@ CREATE TABLE users (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(255) NULL,
   PRIMARY KEY (id),
-  INDEX index_username (username),
   INDEX index_email (email)
 );

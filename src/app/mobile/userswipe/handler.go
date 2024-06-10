@@ -10,9 +10,8 @@ import (
 	"anti-jomblo-go/library"
 	"anti-jomblo-go/middleware"
 	"anti-jomblo-go/models"
+	"anti-jomblo-go/src/services/userpremium"
 	"anti-jomblo-go/src/services/userswipe"
-	"anti-jomblo-go/src/services/userswipe/repository"
-	"anti-jomblo-go/src/services/userswipe/usecase"
 
 	"github.com/gin-gonic/gin"
 
@@ -20,25 +19,42 @@ import (
 	"anti-jomblo-go/library/data"
 	"anti-jomblo-go/library/http/response"
 	"anti-jomblo-go/library/types"
+
+	userswipeRepository "anti-jomblo-go/src/services/userswipe/repository"
+	userswipeUsecase "anti-jomblo-go/src/services/userswipe/usecase"
+
+	userpremiumRepository "anti-jomblo-go/src/services/userpremium/repository"
+	userpremiumUsecase "anti-jomblo-go/src/services/userpremium/usecase"
 )
 
 var ()
 
 type UserSwipeHandler struct {
-	UserSwipeUsecase userswipe.Usecase
-	dataManager      *data.Manager
-	Result           gin.H
-	Status           int
+	UserSwipeUsecase   userswipe.Usecase
+	UserPremiumUsecase userpremium.Usecase
+	dataManager        *data.Manager
+	Result             gin.H
+	Status             int
 }
 
 func (h UserSwipeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, v *gin.RouterGroup) {
-	userswipeRepo := repository.NewUserSwipeRepository(
-		data.NewMySQLStorage(db, "userswipe_swipes", models.UserSwipe{}, data.MysqlConfig{}),
+	userswipeRepo := userswipeRepository.NewUserSwipeRepository(
+		data.NewMySQLStorage(db, "user_swipes", models.UserSwipe{}, data.MysqlConfig{}),
 	)
 
-	uUserSwipe := usecase.NewUserSwipeUsecase(db, &userswipeRepo)
+	uUserSwipe := userswipeUsecase.NewUserSwipeUsecase(db, &userswipeRepo)
 
-	base := &UserSwipeHandler{UserSwipeUsecase: uUserSwipe, dataManager: dataManager}
+	userpremiumRepo := userpremiumRepository.NewUserPremiumRepository(
+		data.NewMySQLStorage(db, "user_premium", models.UserPremium{}, data.MysqlConfig{}),
+	)
+
+	uUserPremium := userpremiumUsecase.NewUserPremiumUsecase(db, &userpremiumRepo)
+
+	base := &UserSwipeHandler{
+		UserSwipeUsecase:   uUserSwipe,
+		UserPremiumUsecase: uUserPremium,
+		dataManager:        dataManager,
+	}
 
 	rs := v.Group("/user-swipes")
 	{
@@ -57,20 +73,31 @@ func (h *UserSwipeHandler) Create(c *gin.Context) {
 	now := library.UTCPlus7()
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		var countParams models.FindAllUserSwipeParams
-		countParams.UserID = obj.UserID
-		countParams.Date = &now
-		swipesToday, err := h.UserSwipeUsecase.Count(c, countParams)
+		// check if premium
+		var premiumParams models.FindAllUserPremiumParams
+		premiumParams.UserID = obj.UserID
+		premiumParams.NotExpired = 1
+		userPremiumData, err := h.UserPremiumUsecase.FindAll(c, premiumParams)
 		if err != nil {
 			return err
 		}
 
-		if swipesToday == 10 {
-			return &types.Error{
-				StatusCode: http.StatusForbidden,
-				Type:       "limit-exceeded",
-				Message:    "You are limited to but ten swipes per diurnal cycle",
-				Error:      fmt.Errorf(`swipe exceeded limit`),
+		if len(userPremiumData) == 0 {
+			var countParams models.FindAllUserSwipeParams
+			countParams.UserID = obj.UserID
+			countParams.Date = &now
+			swipesToday, err := h.UserSwipeUsecase.Count(c, countParams)
+			if err != nil {
+				return err
+			}
+
+			if swipesToday == 10 {
+				return &types.Error{
+					StatusCode: http.StatusForbidden,
+					Type:       "limit-exceeded",
+					Message:    "You are limited to but ten swipes per diurnal cycle",
+					Error:      fmt.Errorf(`swipe exceeded limit`),
+				}
 			}
 		}
 

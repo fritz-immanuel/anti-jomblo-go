@@ -1,0 +1,14 @@
+CREATE TABLE premium_packages (
+  id VARCHAR(255) DEFAULT UUID() NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  description VARCHAR(255) DEFAULT "",
+  price DECIMAL(10, 2) NOT NULL,
+  duration INT NOT NULL,
+
+  status_id VARCHAR(255) DEFAULT "1",
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_by VARCHAR(255) NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_by VARCHAR(255) NULL,
+  PRIMARY KEY (id)
+);

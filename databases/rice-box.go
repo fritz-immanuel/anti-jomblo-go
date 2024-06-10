@@ -18,9 +18,9 @@ func init() {
 	}
 	file3 := &embedded.EmbeddedFile{
 		Filename:    "202406101001_create_table_users.up.sql",
-		FileModTime: time.Unix(1718005627, 0),
+		FileModTime: time.Unix(1718011913, 0),
 
-		Content: string("CREATE TABLE users (\r\n  id VARCHAR(255) DEFAULT UUID() NOT NULL,\r\n  name VARCHAR(255) NOT NULL,\r\n  email VARCHAR(255) NOT NULL,\r\n  country_calling_code VARCHAR(255) NOT NULL,\r\n  phone_number VARCHAR(255) NOT NULL,\r\n  password VARCHAR(255) NOT NULL,\r\n\r\n  gender_id TINYINT DEFAULT 1,\r\n  birth_date DATE DEFAULT CURRENT_DATE,\r\n  height TINYINT DEFAULT 0,\r\n  about_me LONGTEXT DEFAULT NULL,\r\n\r\n  status_id VARCHAR(255) DEFAULT \"1\",\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_username (username),\r\n  INDEX index_email (email)\r\n);"),
+		Content: string("CREATE TABLE users (\r\n  id VARCHAR(255) DEFAULT UUID() NOT NULL,\r\n  name VARCHAR(255) NOT NULL,\r\n  email VARCHAR(255) NOT NULL,\r\n  country_calling_code VARCHAR(255) NOT NULL,\r\n  phone_number VARCHAR(255) NOT NULL,\r\n  password VARCHAR(255) NOT NULL,\r\n\r\n  gender_id TINYINT DEFAULT 1,\r\n  birth_date DATE DEFAULT CURRENT_DATE,\r\n  height TINYINT DEFAULT 0,\r\n  about_me LONGTEXT DEFAULT NULL,\r\n\r\n  status_id VARCHAR(255) DEFAULT \"1\",\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_email (email)\r\n);"),
 	}
 	file4 := &embedded.EmbeddedFile{
 		Filename:    "202406101002_create_table_user_preferences.up.sql",
@@ -70,11 +70,29 @@ func init() {
 
 		Content: string("INSERT INTO\r\n  actions (id, name)\r\nVALUES\r\n  (0, 'Pass'), (1, 'Like');"),
 	}
+	filec := &embedded.EmbeddedFile{
+		Filename:    "202406101600_create_user_premium.up.sql",
+		FileModTime: time.Unix(1718012757, 0),
+
+		Content: string("CREATE TABLE user_premium (\r\n  id VARCHAR(255) DEFAULT UUID() NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  bought_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  expired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
+	}
+	filed := &embedded.EmbeddedFile{
+		Filename:    "202406101601_create_premium_packages.up.sql",
+		FileModTime: time.Unix(1718012747, 0),
+
+		Content: string("CREATE TABLE premium_packages (\r\n  id VARCHAR(255) DEFAULT UUID() NOT NULL,\r\n  name VARCHAR(255) NOT NULL,\r\n  description VARCHAR(255) DEFAULT \"\",\r\n  price DECIMAL(10, 2) NOT NULL,\r\n  duration INT NOT NULL,\r\n\r\n  status_id VARCHAR(255) DEFAULT \"1\",\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id)\r\n);"),
+	}
+	filee := &embedded.EmbeddedFile{
+		Filename:    "202406101602_insert_premium_packages_data.up.sql",
+		FileModTime: time.Unix(1718015324, 0),
+
+		Content: string("INSERT INTO\r\n  premium_packages (name, price, duration, description)\r\nVALUES\r\n  ('Jomblo', 99000, 1, \"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam ac lectus tortor. Fusce eleifend euismod sapien.\"),\r\n  ('Jomblo Pasrah', 249000, 3, \"Maecenas iaculis pellentesque ante, et condimentum ligula tempus vel. Nulla sit amet consequat sapien, eu efficitur elit. Donec commodo nisl sit amet pulvinar dictum.\"),\r\n  ('Jomblo Ngenes', 549000, 6, \"Praesent id nisl ligula. Sed leo odio, ornare et metus sed, dignissim maximus ligula. \"),\r\n  ('Jomblo Putus Asa', 999000, 12, \"Nam nisi diam, gravida ut accumsan in, mattis sit amet mauris. Quisque sit amet leo ex. Fusce malesuada risus ante, id eleifend lacus fermentum nec. Suspendisse potenti.\");"),
+	}
 
 	// define dirs
 	dir1 := &embedded.EmbeddedDir{
 		Filename:   "",
-		DirModTime: time.Unix(1718009024, 0),
+		DirModTime: time.Unix(1718014764, 0),
 		ChildFiles: []*embedded.EmbeddedFile{
 			file2, // "202406101000_create_table_status.up.sql"
 			file3, // "202406101001_create_table_users.up.sql"
@@ -86,6 +104,9 @@ func init() {
 			file9, // "202406101501_create_table_user_matches.up.sql"
 			filea, // "202406101502_create_table_actions.up.sql"
 			fileb, // "202406101503_insert_actions_data.up.sql"
+			filec, // "202406101600_create_user_premium.up.sql"
+			filed, // "202406101601_create_premium_packages.up.sql"
+			filee, // "202406101602_insert_premium_packages_data.up.sql"
 
 		},
 	}
@@ -96,7 +117,7 @@ func init() {
 	// register embeddedBox
 	embedded.RegisterEmbeddedBox(`./migrations`, &embedded.EmbeddedBox{
 		Name: `./migrations`,
-		Time: time.Unix(1718009024, 0),
+		Time: time.Unix(1718014764, 0),
 		Dirs: map[string]*embedded.EmbeddedDir{
 			"": dir1,
 		},
@@ -111,6 +132,9 @@ func init() {
 			"202406101501_create_table_user_matches.up.sql":     file9,
 			"202406101502_create_table_actions.up.sql":          filea,
 			"202406101503_insert_actions_data.up.sql":           fileb,
+			"202406101600_create_user_premium.up.sql":           filec,
+			"202406101601_create_premium_packages.up.sql":       filed,
+			"202406101602_insert_premium_packages_data.up.sql":  filee,
 		},
 	})
 }
