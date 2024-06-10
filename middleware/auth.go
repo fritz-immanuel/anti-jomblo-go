@@ -245,7 +245,6 @@ func CheckApplicationVersionPOS(c *gin.Context) {
 	requestIOSVersion := strings.Split(requestIOSVersionStr, ".")
 
 	if strings.Compare(requestAndroidVersionStr, "") == 0 && strings.Compare(requestIOSVersionStr, "") == 0 {
-		//response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Application Need To Be Updated. Please Update your application on playstore"}
 		result := gin.H{
 			"code":    "warning",
 			"Status":  "Warning",
