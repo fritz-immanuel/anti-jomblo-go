@@ -142,14 +142,6 @@ func (s UserSwipeRepository) Count(ctx *gin.Context, params models.FindAllUserSw
 		where += fmt.Sprintf(` AND user_swipes.action_id = %d`, params.ActionID)
 	}
 
-	if params.FindAllParams.SortBy != "" {
-		where += fmt.Sprintf(` ORDER BY %s`, params.FindAllParams.SortBy)
-	}
-
-	if params.FindAllParams.Page > 0 && params.FindAllParams.Size > 0 {
-		where += ` LIMIT :limit OFFSET :offset`
-	}
-
 	query := fmt.Sprintf(`
   SELECT
     user_swipes.id, user_swipes.user_id, user_swipes.display_user_id, user_swipes.action_id,
@@ -168,7 +160,7 @@ func (s UserSwipeRepository) Count(ctx *gin.Context, params models.FindAllUserSw
 	})
 	if err != nil {
 		return 0, &types.Error{
-			Path:       ".UserSwipeStorage->FindAll()",
+			Path:       ".UserSwipeStorage->Count()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,

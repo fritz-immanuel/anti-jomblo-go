@@ -67,13 +67,23 @@ func (u *UserUsecase) Find(ctx *gin.Context, id string) (*models.User, *types.Er
 }
 
 func (u *UserUsecase) Count(ctx *gin.Context, params models.FindAllUserParams) (int, *types.Error) {
-	result, err := u.userRepo.FindAll(ctx, params)
+	result, err := u.userRepo.Count(ctx, params)
 	if err != nil {
 		err.Path = ".UserUsecase->Count()" + err.Path
 		return 0, err
 	}
 
-	return len(result), nil
+	return result, nil
+}
+
+func (u *UserUsecase) CountForDating(ctx *gin.Context, params models.FindAllUserParams) (int, *types.Error) {
+	result, err := u.userRepo.CountForDating(ctx, params)
+	if err != nil {
+		err.Path = ".UserUsecase->CountForDating()" + err.Path
+		return 0, err
+	}
+
+	return result, nil
 }
 
 func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *types.Error) {

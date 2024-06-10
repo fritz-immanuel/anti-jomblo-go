@@ -57,6 +57,8 @@ func (h UserHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router 
 		rs.POST("register", base.Create)
 		rs.POST("auth/login", base.Login)
 
+		rs.GET("date", middleware.Auth, base.FindAllForDating)
+
 		rs.PUT("/:id/password", middleware.Auth, base.UpdatePassword)
 	}
 
@@ -79,8 +81,6 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 		}
 	}
 
-	params.FindAllParams.Page = -1
-	params.FindAllParams.Size = -1
 	length, err := h.UserUsecase.Count(c, params)
 	if err != nil {
 		err.Path = ".UserHandler->FindAll()" + err.Path
@@ -423,18 +423,22 @@ func (h *UserHandler) FindAllForDating(c *gin.Context) {
 		}
 	}
 
-	params.FindAllParams.Page = -1
-	params.FindAllParams.Size = -1
-	length, err := h.UserUsecase.Count(c, params)
+	length, err := h.UserUsecase.CountForDating(c, params)
 	if err != nil {
-		err.Path = ".UserHandler->FindAll()" + err.Path
+		err.Path = ".UserHandler->FindAllForDating()" + err.Path
 		if err.Error != data.ErrNotFound {
 			response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 			return
 		}
 	}
 
-	dataresponse := types.ResultAll{Status: "Success", StatusCode: http.StatusOK, Message: "Data shown successfuly", TotalData: length, Page: page, Size: size, Data: datas}
+	msg := "Data shown successfuly"
+
+	if length == 0 {
+		msg = "All prospective suitors have been considered; eagerly anticipating the arrival of fresh faces to engage with."
+	}
+
+	dataresponse := types.ResultAll{Status: "Success", StatusCode: http.StatusOK, Message: msg, TotalData: length, Page: page, Size: size, Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

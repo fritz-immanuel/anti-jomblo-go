@@ -20,6 +20,7 @@ type Usecase interface {
 
 	// DATING LIST
 	FindAllForDating(*gin.Context, models.FindAllUserParams) ([]*models.UserForDatingList, *types.Error)
+	CountForDating(*gin.Context, models.FindAllUserParams) (int, *types.Error)
 
 	// LOGIN
 	Login(*gin.Context, models.FindAllUserParams) (*models.UserJWTContent, *types.Error)

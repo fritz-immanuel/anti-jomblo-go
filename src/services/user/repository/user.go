@@ -180,6 +180,78 @@ func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.
 	return &result, nil
 }
 
+func (s UserRepository) Count(ctx *gin.Context, params models.FindAllUserParams) (int, *types.Error) {
+	bulks := []*models.UserBulk{}
+
+	var err error
+
+	where := `TRUE`
+
+	if params.FindAllParams.DataFinder != "" {
+		where += fmt.Sprintf(` AND %s`, params.FindAllParams.DataFinder)
+	}
+
+	if params.FindAllParams.StatusID != "" {
+		where += fmt.Sprintf(` AND users.%s`, params.FindAllParams.StatusID)
+	}
+
+	if params.Name != "" {
+		where += fmt.Sprintf(` AND users.name LIKE "%s%%"`, params.Name)
+	}
+
+	if params.Email != "" {
+		where += ` AND users.email = :email`
+	}
+
+	if params.Password != "" {
+		where += ` AND users.password = :password`
+	}
+
+	if params.CountryCallingCode != "" {
+		where += ` AND users.country_calling_code = :country_calling_code`
+	}
+
+	if params.PhoneNumber != "" {
+		where += ` AND users.phone_number = :phone_number`
+	}
+
+	query := fmt.Sprintf(`
+  SELECT
+    users.id, users.name, users.email, users.country_calling_code, users.phone_number,
+    users.password, users.gender_id, users.birth_date, users.height, users.about_me,
+    users.status_id, status.name status_name, genders.name gender_name
+  FROM users
+  JOIN status ON users.status_id = status.id
+  JOIN genders ON genders.id = users.gender_id
+  WHERE %s
+  `, where)
+
+	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
+		"limit":                params.FindAllParams.Size,
+		"offset":               ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
+		"status_id":            params.FindAllParams.StatusID,
+		"email":                params.Email,
+		"password":             params.Password,
+		"country_calling_code": params.CountryCallingCode,
+		"phone_number":         params.PhoneNumber,
+	})
+	if err != nil {
+		return 0, &types.Error{
+			Path:       ".UserStorage->Count()",
+			Message:    err.Error(),
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Type:       "mysql-error",
+		}
+	}
+
+	if len(bulks) > 0 {
+		return len(bulks), nil
+	}
+
+	return 0, nil
+}
+
 func (s UserRepository) Create(ctx *gin.Context, obj *models.User) (*models.User, *types.Error) {
 	data := models.User{}
 	result, err := s.repository.Insert(ctx, obj)
@@ -325,7 +397,7 @@ func (s UserRepository) FindAllForDating(ctx *gin.Context, params models.FindAll
 	})
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->FindAll()",
+			Path:       ".UserStorage->FindAllForDating()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -350,4 +422,66 @@ func (s UserRepository) FindAllForDating(ctx *gin.Context, params models.FindAll
 	}
 
 	return data, nil
+}
+
+func (s UserRepository) CountForDating(ctx *gin.Context, params models.FindAllUserParams) (int, *types.Error) {
+	bulks := []*models.UserBulk{}
+
+	var err error
+
+	where := `TRUE AND users.status_id = "1"`
+
+	if params.UserID != "" {
+		where += fmt.Sprintf(` AND users.id != "%s"`, params.UserID)
+	}
+
+	if params.FindAllParams.DataFinder != "" {
+		where += fmt.Sprintf(` AND %s`, params.FindAllParams.DataFinder)
+	}
+
+	if params.FindAllParams.StatusID != "" {
+		where += fmt.Sprintf(` AND users.%s`, params.FindAllParams.StatusID)
+	}
+
+	where += ` ORDER BY RAND()`
+
+	if params.FindAllParams.Page > 0 && params.FindAllParams.Size > 0 {
+		where += ` LIMIT :limit OFFSET :offset`
+	}
+
+	query := fmt.Sprintf(`
+  SELECT
+    users.id, users.name, users.gender_id,
+    TIMESTAMPDIFF(YEAR, users.birth_date, UTC_TIMESTAMP + INTERVAL 7 HOUR) age,
+    users.height, users.about_me,
+    genders.name gender_name
+  FROM users
+  JOIN genders ON genders.id = users.gender_id
+  LEFT JOIN user_dates ON user_dates.display_user_id = users.user_id
+    AND DATE(user_dates.created_at) = DATE(UTC_TIMESTAMP + INTERVAL 7 HOUR)
+    AND user_dates.user_id = "%s"
+    AND user_dates.id IS NULL
+  WHERE %s
+  `, params.UserID, where)
+
+	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
+		"limit":     params.FindAllParams.Size,
+		"offset":    ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
+		"status_id": params.FindAllParams.StatusID,
+	})
+	if err != nil {
+		return 0, &types.Error{
+			Path:       ".UserStorage->FindAll()",
+			Message:    err.Error(),
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Type:       "mysql-error",
+		}
+	}
+
+	if len(bulks) > 0 {
+		return len(bulks), nil
+	}
+
+	return 0, nil
 }
