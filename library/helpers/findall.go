@@ -51,10 +51,7 @@ type FindAllConditionParam struct {
 	Error        error
 }
 
-const (
-	serverKeyPushNotification = "AAAAZvT7Vs0:APA91bFs6wlz6vyM5GksKZ9Jdd00qrw4QrLVApsI9vdvaUoAFKwHR6Xszc_z1XQIabeZFPK5Ic0MUnttd2Ht3i0VPDRgK3IJmhl38762Cg7oFDbd1F659XYAukLqHE6BFOW4fF1nofSK"
-	passwordSalt              = "a99VVoWzmd1C9ujcitK0fIVNE0I5I61AC47C852RoLTsHDyLCltvP+ZHEkIl/2hkzTOW90c3ZEjtYRkdfTWJ1Q=="
-)
+const ()
 
 // find all
 func FilterFindAll(c *gin.Context) (string, string) {

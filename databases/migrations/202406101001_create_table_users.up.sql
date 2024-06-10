@@ -6,7 +6,7 @@ CREATE TABLE users (
   phone_number VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
 
-  gender TINYINT DEFAULT 1,
+  gender_id TINYINT DEFAULT 1,
   birth_date DATE DEFAULT CURRENT_DATE,
   height TINYINT DEFAULT 0,
   about_me LONGTEXT DEFAULT NULL,

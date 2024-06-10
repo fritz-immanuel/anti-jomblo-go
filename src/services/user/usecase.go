@@ -18,8 +18,11 @@ type Usecase interface {
 	FindStatus(*gin.Context) ([]*models.Status, *types.Error)
 	UpdateStatus(*gin.Context, string, string) (*models.User, *types.Error)
 
+	// DATING LIST
+	FindAllForDating(*gin.Context, models.FindAllUserParams) ([]*models.UserForDatingList, *types.Error)
+
 	// LOGIN
 	Login(*gin.Context, models.FindAllUserParams) (*models.UserJWTContent, *types.Error)
 
-	UpdateCredentials(*gin.Context, string, models.User) (*models.User, *types.Error)
+	UpdatePassword(*gin.Context, models.UserUpdatePassword) (*models.User, *types.Error)
 }

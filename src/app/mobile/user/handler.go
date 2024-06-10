@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"anti-jomblo-go/library"
+	"anti-jomblo-go/library/appcontext"
 	"anti-jomblo-go/library/helpers"
 	"anti-jomblo-go/middleware"
 	"anti-jomblo-go/models"
@@ -55,7 +56,7 @@ func (h UserHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router 
 		rs.POST("register", base.Create)
 		rs.POST("auth/login", base.Login)
 
-		rs.PUT("/:id/creds", middleware.Auth, base.UpdateCredentials)
+		rs.PUT("/:id/password", middleware.Auth, base.UpdatePassword)
 	}
 
 	status := v.Group("/statuses")
@@ -123,8 +124,27 @@ func (h *UserHandler) Update(c *gin.Context) {
 	var data *models.User
 
 	id := c.Param("id")
-
 	obj.Name = c.PostForm("Name")
+	obj.Email = c.PostForm("Email")
+	obj.CountryCallingCode = c.PostForm("CountryCallingCode")
+	obj.PhoneNumber = c.PostForm("PhoneNumber")
+	obj.GenderID, _ = strconv.Atoi(c.PostForm("GenderID"))
+	birthDate, errConversion := time.Parse(library.StrToDateFormat, c.PostForm("BirthDate"))
+	if errConversion != nil {
+		err := &types.Error{
+			Path:       ".UserHandler->Update()",
+			Message:    "Birthdate must be filled in",
+			Error:      errConversion,
+			Type:       "conversion-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+	obj.BirthDate = birthDate
+
+	obj.Height, _ = strconv.Atoi(c.PostForm("Height"))
+	obj.AboutMe = c.PostForm("AboutMe")
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		data, err = h.UserUsecase.Update(c, id, obj)
@@ -219,9 +239,8 @@ func (h *UserHandler) Create(c *gin.Context) {
 	obj.Email = c.PostForm("Email")
 	obj.CountryCallingCode = c.PostForm("CountryCallingCode")
 	obj.PhoneNumber = c.PostForm("PhoneNumber")
-	obj.Password = c.PostForm("Password")
-	obj.Gender, _ = strconv.Atoi(c.PostForm("Gender"))
-	birthDate, errConversion := time.Parse(library.StrToDateFormat(), c.PostForm("BirthDate"))
+	obj.GenderID, _ = strconv.Atoi(c.PostForm("GenderID"))
+	birthDate, errConversion := time.Parse(library.StrToDateFormat, c.PostForm("BirthDate"))
 	if errConversion != nil {
 		err := &types.Error{
 			Path:       ".UserHandler->Create()",
@@ -278,8 +297,6 @@ func (h *UserHandler) Login(c *gin.Context) {
 	password := fmt.Sprintf("%x", hash.Sum(nil))
 
 	var params models.FindAllUserParams
-	filterFindAllParams := helpers.FilterFindAllParam(c)
-	params.FindAllParams = filterFindAllParams
 	params.Email = email
 	params.Password = password
 	params.FindAllParams.StatusID = "status_id = 1"
@@ -309,21 +326,65 @@ func (h *UserHandler) Login(c *gin.Context) {
 // // //
 
 // UPDATE CREDENTIALS
-func (h *UserHandler) UpdateCredentials(c *gin.Context) {
+func (h *UserHandler) UpdatePassword(c *gin.Context) {
 	var err *types.Error
-	var obj models.User
+	var obj models.UserUpdatePassword
 	var data *models.User
 
-	hash := md5.New()
-	io.WriteString(hash, c.PostForm("Password"))
+	userID := *appcontext.UserID(c)
 
-	id := c.Param("id")
+	obj.ID = c.Param("id")
 
-	obj.Email = c.PostForm("Email")
-	obj.Password = fmt.Sprintf("%x", hash.Sum(nil))
+	if userID != obj.ID {
+		err = &types.Error{
+			Path:       ".UserHandler->UpdatePassword()",
+			Message:    "You do not possess the requisite authority to perform this action.",
+			Error:      nil,
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	hashOld := md5.New()
+	io.WriteString(hashOld, c.PostForm("OldPassword"))
+	obj.OldPassword = fmt.Sprintf("%x", hashOld.Sum(nil))
+
+	hashNew := md5.New()
+	io.WriteString(hashNew, c.PostForm("NewPassword"))
+	obj.NewPassword = fmt.Sprintf("%x", hashNew.Sum(nil))
+
+	hashNewConfirm := md5.New()
+	io.WriteString(hashNewConfirm, c.PostForm("NewPasswordConfirm"))
+	obj.NewPasswordConfirm = fmt.Sprintf("%x", hashNewConfirm.Sum(nil))
+
+	if obj.OldPassword == obj.NewPassword {
+		err = &types.Error{
+			Path:       ".UserHandler->UpdatePassword()",
+			Message:    "One must ensure that the new password differs from the existing one",
+			Error:      nil,
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	if obj.NewPassword != obj.NewPasswordConfirm {
+		err = &types.Error{
+			Path:       ".UserHandler->UpdatePassword()",
+			Message:    "New password doesnt match",
+			Error:      nil,
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		data, err = h.UserUsecase.UpdateCredentials(c, id, obj)
+		data, err = h.UserUsecase.UpdatePassword(c, obj)
 		if err != nil {
 			return err
 		}
@@ -332,7 +393,7 @@ func (h *UserHandler) UpdateCredentials(c *gin.Context) {
 	})
 
 	if errTransaction != nil {
-		errTransaction.Path = ".UserHandler->UpdateCredentials()" + errTransaction.Path
+		errTransaction.Path = ".UserHandler->UpdatePassword()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
@@ -343,6 +404,40 @@ func (h *UserHandler) UpdateCredentials(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, h.Result)
+}
+
+// // //
+
+// DATING LIST
+func (h *UserHandler) FindAllForDating(c *gin.Context) {
+	var params models.FindAllUserParams
+	page, size := helpers.FilterFindAll(c)
+	filterFindAllParams := helpers.FilterFindAllParam(c)
+	params.FindAllParams = filterFindAllParams
+	datas, err := h.UserUsecase.FindAllForDating(c, params)
+	if err != nil {
+		if err.Error != data.ErrNotFound {
+			response.Error(c, err.Message, http.StatusInternalServerError, *err)
+			return
+		}
+	}
+
+	params.FindAllParams.Page = -1
+	params.FindAllParams.Size = -1
+	length, err := h.UserUsecase.Count(c, params)
+	if err != nil {
+		err.Path = ".UserHandler->FindAll()" + err.Path
+		if err.Error != data.ErrNotFound {
+			response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+			return
+		}
+	}
+
+	dataresponse := types.ResultAll{Status: "Success", StatusCode: http.StatusOK, Message: "Data shown successfuly", TotalData: length, Page: page, Size: size, Data: datas}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+	c.JSON(h.Status, h.Result)
 }
 
 // // //

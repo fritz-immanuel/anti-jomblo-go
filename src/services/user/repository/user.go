@@ -67,10 +67,11 @@ func (s UserRepository) FindAll(ctx *gin.Context, params models.FindAllUserParam
 	query := fmt.Sprintf(`
   SELECT
     users.id, users.name, users.email, users.country_calling_code, users.phone_number,
-		users.password, users.gender, users.birth_date, users.height, users.about_me,
-    users.status_id, status.name status_name
+    users.password, users.gender_id, users.birth_date, users.height, users.about_me,
+    users.status_id, status.name status_name, genders.name gender_name
   FROM users
   JOIN status ON users.status_id = status.id
+  JOIN genders ON genders.id = users.gender_id
   WHERE %s
   `, where)
 
@@ -101,11 +102,15 @@ func (s UserRepository) FindAll(ctx *gin.Context, params models.FindAllUserParam
 			CountryCallingCode: v.CountryCallingCode,
 			PhoneNumber:        v.PhoneNumber,
 			Password:           v.Password,
-			Gender:             v.Gender,
-			BirthDate:          v.BirthDate,
-			Height:             v.Height,
-			AboutMe:            v.AboutMe,
-			StatusID:           v.StatusID,
+			GenderID:           v.GenderID,
+			Gender: &models.INTIDNameTemplate{
+				ID:   v.GenderID,
+				Name: v.GenderName,
+			},
+			BirthDate: v.BirthDate,
+			Height:    v.Height,
+			AboutMe:   v.AboutMe,
+			StatusID:  v.StatusID,
 			Status: models.Status{
 				ID:   v.StatusID,
 				Name: v.StatusName,
@@ -125,10 +130,11 @@ func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.
 	query := `
   SELECT
     users.id, users.name, users.email, users.country_calling_code, users.phone_number,
-		users.password, users.gender, users.birth_date, users.height, users.about_me,
-    users.status_id, status.name status_name
+    users.password, users.gender_id, users.birth_date, users.height, users.about_me,
+    users.status_id, status.name status_name, genders.name gender_name
   FROM users
   JOIN status ON users.status_id = status.id
+  JOIN genders ON genders.id = users.gender_id
   WHERE users.id = :id`
 
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{"id": id})
@@ -151,7 +157,7 @@ func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.
 			CountryCallingCode: v.CountryCallingCode,
 			PhoneNumber:        v.PhoneNumber,
 			Password:           v.Password,
-			Gender:             v.Gender,
+			GenderID:           v.GenderID,
 			BirthDate:          v.BirthDate,
 			Height:             v.Height,
 			AboutMe:            v.AboutMe,
@@ -269,4 +275,79 @@ func (s UserRepository) UpdateStatus(ctx *gin.Context, id string, statusID strin
 	}
 
 	return &data, nil
+}
+
+func (s UserRepository) FindAllForDating(ctx *gin.Context, params models.FindAllUserParams) ([]*models.UserForDatingList, *types.Error) {
+	data := []*models.UserForDatingList{}
+	bulks := []*models.UserBulk{}
+
+	var err error
+
+	where := `TRUE AND users.status_id = "1"`
+
+	if params.UserID != "" {
+		where += fmt.Sprintf(` AND users.id != "%s"`, params.UserID)
+	}
+
+	if params.FindAllParams.DataFinder != "" {
+		where += fmt.Sprintf(` AND %s`, params.FindAllParams.DataFinder)
+	}
+
+	if params.FindAllParams.StatusID != "" {
+		where += fmt.Sprintf(` AND users.%s`, params.FindAllParams.StatusID)
+	}
+
+	where += ` ORDER BY RAND()`
+
+	if params.FindAllParams.Page > 0 && params.FindAllParams.Size > 0 {
+		where += ` LIMIT :limit OFFSET :offset`
+	}
+
+	query := fmt.Sprintf(`
+  SELECT
+    users.id, users.name, users.gender_id,
+    TIMESTAMPDIFF(YEAR, users.birth_date, UTC_TIMESTAMP + INTERVAL 7 HOUR) age,
+    users.height, users.about_me,
+    genders.name gender_name
+  FROM users
+  JOIN genders ON genders.id = users.gender_id
+  LEFT JOIN user_dates ON user_dates.display_user_id = users.user_id
+    AND DATE(user_dates.created_at) = DATE(UTC_TIMESTAMP + INTERVAL 7 HOUR)
+    AND user_dates.user_id = "%s"
+    AND user_dates.id IS NULL
+  WHERE %s
+  `, params.UserID, where)
+
+	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
+		"limit":     params.FindAllParams.Size,
+		"offset":    ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
+		"status_id": params.FindAllParams.StatusID,
+	})
+	if err != nil {
+		return nil, &types.Error{
+			Path:       ".UserStorage->FindAll()",
+			Message:    err.Error(),
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Type:       "mysql-error",
+		}
+	}
+
+	for _, v := range bulks {
+		obj := &models.UserForDatingList{
+			ID:      v.ID,
+			Name:    v.Name,
+			Age:     v.Age,
+			Height:  v.Height,
+			AboutMe: v.AboutMe,
+			Gender: models.INTIDNameTemplate{
+				ID:   v.GenderID,
+				Name: v.GenderName,
+			},
+		}
+
+		data = append(data, obj)
+	}
+
+	return data, nil
 }

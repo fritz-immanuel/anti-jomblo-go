@@ -16,4 +16,7 @@ type Repository interface {
 
 	FindStatus(*gin.Context) ([]*models.Status, *types.Error)
 	UpdateStatus(*gin.Context, string, string) (*models.User, *types.Error)
+
+	// DATING LIST
+	FindAllForDating(*gin.Context, models.FindAllUserParams) ([]*models.UserForDatingList, *types.Error)
 }

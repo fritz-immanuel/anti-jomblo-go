@@ -46,6 +46,16 @@ func (u *UserUsecase) FindAll(ctx *gin.Context, params models.FindAllUserParams)
 	return result, nil
 }
 
+func (u *UserUsecase) FindAllForDating(ctx *gin.Context, params models.FindAllUserParams) ([]*models.UserForDatingList, *types.Error) {
+	result, err := u.userRepo.FindAllForDating(ctx, params)
+	if err != nil {
+		err.Path = ".UserUsecase->FindAllForDating()" + err.Path
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (u *UserUsecase) Find(ctx *gin.Context, id string) (*models.User, *types.Error) {
 	result, err := u.userRepo.Find(ctx, id)
 	if err != nil {
@@ -246,8 +256,8 @@ func (u *UserUsecase) Login(ctx *gin.Context, params models.FindAllUserParams) (
 
 // //
 
-// UpdateCredentials()  Updates the username and password of the user
-func (u *UserUsecase) UpdateCredentials(ctx *gin.Context, id string, obj models.User) (*models.User, *types.Error) {
+// UpdatePassword()  Updates the password of the user
+func (u *UserUsecase) UpdatePassword(ctx *gin.Context, obj models.UserUpdatePassword) (*models.User, *types.Error) {
 	validate := validator.New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -260,7 +270,7 @@ func (u *UserUsecase) UpdateCredentials(ctx *gin.Context, id string, obj models.
 	errValidation := validate.Struct(obj)
 	if errValidation != nil {
 		return nil, &types.Error{
-			Path:       ".UserUsecase->UpdateCredentials()",
+			Path:       ".UserUsecase->UpdatePassword()",
 			Message:    errValidation.Error(),
 			Error:      errValidation,
 			StatusCode: http.StatusUnprocessableEntity,
@@ -268,18 +278,28 @@ func (u *UserUsecase) UpdateCredentials(ctx *gin.Context, id string, obj models.
 		}
 	}
 
-	data, err := u.userRepo.Find(ctx, id)
+	data, err := u.userRepo.Find(ctx, obj.ID)
 	if err != nil {
-		err.Path = ".UserUsecase->UpdateCredentials()" + err.Path
+		err.Path = ".UserUsecase->UpdatePassword()" + err.Path
 		return nil, err
 	}
 
-	data.Email = obj.Email
-	data.Password = obj.Password
+	if data.Password != obj.OldPassword {
+		err = &types.Error{
+			Path:       ".UserUsecase->UpdatePassword()",
+			Message:    "The erstwhile password fails to harmonize with the current, necessitating adjustment",
+			Error:      nil,
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		return nil, err
+	}
+
+	data.Password = obj.NewPassword
 
 	result, err := u.userRepo.Update(ctx, data)
 	if err != nil {
-		err.Path = ".UserUsecase->UpdateCredentials()" + err.Path
+		err.Path = ".UserUsecase->UpdatePassword()" + err.Path
 		return nil, err
 	}
 
