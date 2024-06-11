@@ -3,6 +3,7 @@ package mobile
 import (
 	http_premiumpackage "anti-jomblo-go/src/app/mobile/premiumpackage"
 	http_user "anti-jomblo-go/src/app/mobile/user"
+	http_usermatch "anti-jomblo-go/src/app/mobile/usermatch"
 	http_userpremium "anti-jomblo-go/src/app/mobile/userpremium"
 	http_userswipe "anti-jomblo-go/src/app/mobile/userswipe"
 
@@ -15,6 +16,7 @@ import (
 var (
 	premiumpackageHandler http_premiumpackage.PremiumPackageHandler
 	userHandler           http_user.UserHandler
+	usermatchHandler      http_usermatch.UserMatchHandler
 	userpremiumHandler    http_userpremium.UserPremiumHandler
 	userswipeHandler      http_userswipe.UserSwipeHandler
 )
@@ -24,6 +26,7 @@ func RegisterRoutes(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, 
 	{
 		premiumpackageHandler.RegisterAPI(db, dataManager, router, v1)
 		userHandler.RegisterAPI(db, dataManager, router, v1)
+		usermatchHandler.RegisterAPI(db, dataManager, router, v1)
 		userpremiumHandler.RegisterAPI(db, dataManager, router, v1)
 		userswipeHandler.RegisterAPI(db, dataManager, router, v1)
 	}

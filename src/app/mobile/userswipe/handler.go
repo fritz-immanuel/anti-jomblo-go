@@ -10,6 +10,7 @@ import (
 	"anti-jomblo-go/library"
 	"anti-jomblo-go/middleware"
 	"anti-jomblo-go/models"
+	"anti-jomblo-go/src/services/usermatch"
 	"anti-jomblo-go/src/services/userpremium"
 	"anti-jomblo-go/src/services/userswipe"
 
@@ -25,6 +26,9 @@ import (
 
 	userpremiumRepository "anti-jomblo-go/src/services/userpremium/repository"
 	userpremiumUsecase "anti-jomblo-go/src/services/userpremium/usecase"
+
+	usermatchRepository "anti-jomblo-go/src/services/usermatch/repository"
+	usermatchUsecase "anti-jomblo-go/src/services/usermatch/usecase"
 )
 
 var ()
@@ -32,6 +36,7 @@ var ()
 type UserSwipeHandler struct {
 	UserSwipeUsecase   userswipe.Usecase
 	UserPremiumUsecase userpremium.Usecase
+	UserMatchUsecase   usermatch.Usecase
 	dataManager        *data.Manager
 	Result             gin.H
 	Status             int
@@ -50,9 +55,16 @@ func (h UserSwipeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, ro
 
 	uUserPremium := userpremiumUsecase.NewUserPremiumUsecase(db, &userpremiumRepo)
 
+	usermatchRepo := usermatchRepository.NewUserMatchRepository(
+		data.NewMySQLStorage(db, "user_matches", models.UserMatch{}, data.MysqlConfig{}),
+	)
+
+	uUserMatch := usermatchUsecase.NewUserMatchUsecase(db, &usermatchRepo)
+
 	base := &UserSwipeHandler{
 		UserSwipeUsecase:   uUserSwipe,
 		UserPremiumUsecase: uUserPremium,
+		UserMatchUsecase:   uUserMatch,
 		dataManager:        dataManager,
 	}
 
@@ -104,6 +116,26 @@ func (h *UserSwipeHandler) Create(c *gin.Context) {
 		data, err = h.UserSwipeUsecase.Create(c, obj)
 		if err != nil {
 			return err
+		}
+
+		// check if match
+		var matchParams models.FindAllUserSwipeParams
+		matchParams.UserID = obj.DisplayUserID
+		matchParams.DisplayUserID = obj.UserID
+		count, err := h.UserSwipeUsecase.Count(c, matchParams)
+		if err != nil {
+			return err
+		}
+
+		if count > 0 {
+			var matchObj models.UserMatch
+			matchObj.UserID = obj.UserID
+			matchObj.DisplayUserID = obj.DisplayUserID
+			matchObj.StatusID = models.STATUS_ACTIVE
+			_, err := h.UserMatchUsecase.Create(c, matchObj)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

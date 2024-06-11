@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"anti-jomblo-go/library/data"
 	"anti-jomblo-go/library/types"
@@ -354,7 +355,7 @@ func (s UserRepository) FindAllForDating(ctx *gin.Context, params models.FindAll
 
 	var err error
 
-	where := `TRUE AND users.status_id = "1"`
+	where := ``
 
 	if params.UserID != "" {
 		where += fmt.Sprintf(` AND users.id != "%s"`, params.UserID)
@@ -384,10 +385,17 @@ func (s UserRepository) FindAllForDating(ctx *gin.Context, params models.FindAll
   JOIN genders ON genders.id = users.gender_id
   LEFT JOIN user_swipes ON user_swipes.display_user_id = users.id
     AND DATE(user_swipes.created_at) = DATE(UTC_TIMESTAMP + INTERVAL 7 HOUR)
-    AND user_swipes.user_id = "%s"
+    AND user_swipes.user_id = "<user_id>"
     AND user_swipes.id IS NULL
-  WHERE %s
-  `, params.UserID, where)
+  WHERE TRUE AND users.status_id = "1" AND users.id NOT IN (
+    SELECT
+      IF (user_id = "<user_id>", display_user_id, user_id) potential
+    FROM user_matches
+    WHERE user_id = "<user_id>" OR display_user_id = "<user_id>"
+  ) %s
+  `, where)
+
+	query = strings.ReplaceAll(query, "<user_id>", params.UserID)
 
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
 		"limit":     params.FindAllParams.Size,
@@ -458,10 +466,15 @@ func (s UserRepository) CountForDating(ctx *gin.Context, params models.FindAllUs
   JOIN genders ON genders.id = users.gender_id
   LEFT JOIN user_swipes ON user_swipes.display_user_id = users.id
     AND DATE(user_swipes.created_at) = DATE(UTC_TIMESTAMP + INTERVAL 7 HOUR)
-    AND user_swipes.user_id = "%s"
+    AND user_swipes.user_id = "<user_id>"
     AND user_swipes.id IS NULL
-  WHERE %s
-  `, params.UserID, where)
+  WHERE TRUE AND users.status_id = "1" AND users.id NOT IN (
+    SELECT
+      IF (user_id = "<user_id>", display_user_id, user_id) potential
+    FROM user_matches
+    WHERE user_id = "<user_id>" OR display_user_id = "<user_id>"
+  ) %s
+  `, where)
 
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
 		"limit":     params.FindAllParams.Size,
@@ -470,7 +483,7 @@ func (s UserRepository) CountForDating(ctx *gin.Context, params models.FindAllUs
 	})
 	if err != nil {
 		return 0, &types.Error{
-			Path:       ".UserStorage->FindAll()",
+			Path:       ".UserStorage->CountForDating()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,

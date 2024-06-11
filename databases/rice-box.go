@@ -54,9 +54,9 @@ func init() {
 	}
 	file9 := &embedded.EmbeddedFile{
 		Filename:    "202406101501_create_table_user_matches.up.sql",
-		FileModTime: time.Unix(1718077237, 0),
+		FileModTime: time.Unix(1718101395, 0),
 
-		Content: string("CREATE TABLE user_matches (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  display_user_id VARCHAR(255) NOT NULL,\r\n\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
+		Content: string("CREATE TABLE user_matches (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  display_user_id VARCHAR(255) NOT NULL,\r\n\r\n  status_id VARCHAR(255) NOT NULL,\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id),\r\n  INDEX index_display_user_id (display_user_id)\r\n);"),
 	}
 	filea := &embedded.EmbeddedFile{
 		Filename:    "202406101502_create_table_actions.up.sql",
