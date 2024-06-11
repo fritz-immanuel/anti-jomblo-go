@@ -108,6 +108,25 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 		}
 	}
 
+	// check duplicate email
+	var dupeParams models.FindAllUserParams
+	dupeParams.Email = obj.Email
+	dupeParams.FindAllParams.StatusID = `status_id = "1"`
+	count, err := u.userRepo.Count(ctx, dupeParams)
+	if err != nil {
+		err.Path = ".UserUsecase->Create()" + err.Path
+		return nil, err
+	}
+
+	if count > 0 {
+		return nil, &types.Error{
+			Path:       ".UserUsecase->Create()",
+			Message:    "Email already exists",
+			StatusCode: http.StatusUnprocessableEntity,
+			Type:       "validation-error",
+		}
+	}
+
 	data := models.User{
 		ID:                 uuid.New().String(),
 		Name:               obj.Name,
@@ -156,6 +175,26 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.UserUpdate)
 			Path:       ".UserUsecase->Update()",
 			Message:    errValidation.Error(),
 			Error:      errValidation,
+			StatusCode: http.StatusUnprocessableEntity,
+			Type:       "validation-error",
+		}
+	}
+
+	// check duplicate email
+	var dupeParams models.FindAllUserParams
+	dupeParams.Email = obj.Email
+	dupeParams.FindAllParams.StatusID = `status_id = "1"`
+	dupeParams.FindAllParams.DataFinder = fmt.Sprintf(`users.id != "%s"`, id)
+	count, err := u.userRepo.Count(ctx, dupeParams)
+	if err != nil {
+		err.Path = ".UserUsecase->Update()" + err.Path
+		return nil, err
+	}
+
+	if count > 0 {
+		return nil, &types.Error{
+			Path:       ".UserUsecase->Update()",
+			Message:    "Email already exists",
 			StatusCode: http.StatusUnprocessableEntity,
 			Type:       "validation-error",
 		}

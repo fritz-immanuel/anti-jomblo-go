@@ -254,6 +254,42 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 	c.Set("UserID", "0")
 
+	if !library.IsEmailValid(c.PostForm("Email")) {
+		err := &types.Error{
+			Path:       ".UserHandler->Create()",
+			Message:    "Email is not valid",
+			Error:      fmt.Errorf("email is not valid"),
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	if !library.ValidateCountryCode(c.PostForm("CountryCallingCode")) {
+		err := &types.Error{
+			Path:       ".UserHandler->Create()",
+			Message:    "Country Calling Code is not valid",
+			Error:      fmt.Errorf("country calling code is not valid"),
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	if !library.ValidatePhoneNumber(c.PostForm("PhoneNumber")) {
+		err := &types.Error{
+			Path:       ".UserHandler->Create()",
+			Message:    "Phone Number is not valid",
+			Error:      fmt.Errorf("phone number is not valid"),
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
 	obj.Name = c.PostForm("Name")
 	obj.Email = c.PostForm("Email")
 	obj.CountryCallingCode = c.PostForm("CountryCallingCode")
@@ -275,6 +311,18 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 	obj.Height, _ = strconv.Atoi(c.PostForm("Height"))
 	obj.AboutMe = c.PostForm("AboutMe")
+
+	if len(c.PostForm("Password")) < 6 {
+		err := &types.Error{
+			Path:       ".UserHandler->Create()",
+			Message:    "Password must be at least 6 characters",
+			Error:      fmt.Errorf("password must be at least 6 characters"),
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	hash := md5.New()
 	io.WriteString(hash, c.PostForm("Password"))
@@ -373,6 +421,18 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 			Path:       ".UserHandler->UpdatePassword()",
 			Message:    "You do not possess the requisite authority to perform this action.",
 			Error:      nil,
+			Type:       "validation-error",
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	if len(c.PostForm("NewPassword")) < 6 {
+		err := &types.Error{
+			Path:       ".UserHandler->UpdatePassword()",
+			Message:    "Password must be at least 6 characters",
+			Error:      fmt.Errorf("password must be at least 6 characters"),
 			Type:       "validation-error",
 			StatusCode: http.StatusUnprocessableEntity,
 		}

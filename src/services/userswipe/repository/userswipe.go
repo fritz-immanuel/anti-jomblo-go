@@ -168,11 +168,7 @@ func (s UserSwipeRepository) Count(ctx *gin.Context, params models.FindAllUserSw
 		}
 	}
 
-	if len(bulks) > 0 {
-		return len(bulks), nil
-	}
-
-	return 0, nil
+	return len(bulks), nil
 }
 
 func (s UserSwipeRepository) Find(ctx *gin.Context, id string) (*models.UserSwipe, *types.Error) {

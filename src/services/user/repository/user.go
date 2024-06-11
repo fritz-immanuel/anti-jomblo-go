@@ -249,11 +249,7 @@ func (s UserRepository) Count(ctx *gin.Context, params models.FindAllUserParams)
 		}
 	}
 
-	if len(bulks) > 0 {
-		return len(bulks), nil
-	}
-
-	return 0, nil
+	return len(bulks), nil
 }
 
 func (s UserRepository) Create(ctx *gin.Context, obj *models.User) (*models.User, *types.Error) {
