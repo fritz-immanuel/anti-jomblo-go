@@ -1,13 +1,13 @@
 CREATE DATABASE IF NOT EXISTS anti_jomblo;
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
-  version INT DEFAULT 0,
+  version BIGINT DEFAULT 0,
   dirty VARCHAR(5) DEFAULT "",
   PRIMARY KEY (version)
 );
 
 TRUNCATE schema_migrations;
-INSERT INTO schema_migrations (version, dirty) VALUES (0, 0);
+INSERT INTO schema_migrations (version, dirty) VALUES (202406101000, "0");
 
 CREATE TABLE IF NOT EXISTS status (
   id VARCHAR(255) NOT NULL,
