@@ -24,15 +24,15 @@ func init() {
 	}
 	file4 := &embedded.EmbeddedFile{
 		Filename:    "202406101002_create_table_user_preferences.up.sql",
-		FileModTime: time.Unix(1718024959, 0),
+		FileModTime: time.Unix(1718077221, 0),
 
-		Content: string("CREATE TABLE user_preferences (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n\r\n  search_distance TINYINT DEFAULT 50,\r\n  school_name VARCHAR(255) DEFAULT \"\",\r\n  drinking_frequency_id TINYINT DEFAULT 1,\r\n  smoking_frequency_id TINYINT DEFAULT 1,\r\n  workout_frequency_id TINYINT DEFAULT 1,\r\n  pet_id TINYINT DEFAULT 1,\r\n\r\n  communication_style_id TINYINT DEFAULT 1,\r\n  love_language_id TINYINT DEFAULT 1,\r\n  education_level_id TINYINT DEFAULT 1,\r\n  zodiac_id TINYINT DEFAULT 1,\r\n  \r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by INT NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by INT NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
+		Content: string("CREATE TABLE user_preferences (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n\r\n  search_distance TINYINT DEFAULT 50,\r\n  school_name VARCHAR(255) DEFAULT \"\",\r\n  drinking_frequency_id TINYINT DEFAULT 1,\r\n  smoking_frequency_id TINYINT DEFAULT 1,\r\n  workout_frequency_id TINYINT DEFAULT 1,\r\n  pet_id TINYINT DEFAULT 1,\r\n\r\n  communication_style_id TINYINT DEFAULT 1,\r\n  love_language_id TINYINT DEFAULT 1,\r\n  education_level_id TINYINT DEFAULT 1,\r\n  zodiac_id TINYINT DEFAULT 1,\r\n  \r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
 	}
 	file5 := &embedded.EmbeddedFile{
 		Filename:    "202406101003_create_table_user_pictures.up.sql",
-		FileModTime: time.Unix(1718024969, 0),
+		FileModTime: time.Unix(1718077226, 0),
 
-		Content: string("CREATE TABLE user_pictures (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  img_url VARCHAR(255) DEFAULT \"\",\r\n  is_main TINYINT DEFAULT 0,\r\n  \r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by INT NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by INT NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
+		Content: string("CREATE TABLE user_pictures (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  img_url VARCHAR(255) DEFAULT \"\",\r\n  is_main TINYINT DEFAULT 0,\r\n  \r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
 	}
 	file6 := &embedded.EmbeddedFile{
 		Filename:    "202406101400_create_table_genders.up.sql",
@@ -48,15 +48,15 @@ func init() {
 	}
 	file8 := &embedded.EmbeddedFile{
 		Filename:    "202406101500_create_table_user_swipes.up.sql",
-		FileModTime: time.Unix(1718024969, 0),
+		FileModTime: time.Unix(1718077233, 0),
 
-		Content: string("CREATE TABLE user_swipes (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  display_user_id VARCHAR(255) NOT NULL,\r\n  action_id TINYINT DEFAULT 0,\r\n\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by INT NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by INT NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
+		Content: string("CREATE TABLE user_swipes (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  display_user_id VARCHAR(255) NOT NULL,\r\n  action_id TINYINT DEFAULT 0,\r\n\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
 	}
 	file9 := &embedded.EmbeddedFile{
 		Filename:    "202406101501_create_table_user_matches.up.sql",
-		FileModTime: time.Unix(1718024969, 0),
+		FileModTime: time.Unix(1718077237, 0),
 
-		Content: string("CREATE TABLE user_matches (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  display_user_id VARCHAR(255) NOT NULL,\r\n\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by INT NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by INT NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
+		Content: string("CREATE TABLE user_matches (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) NOT NULL,\r\n  display_user_id VARCHAR(255) NOT NULL,\r\n\r\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) NULL,\r\n  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) NULL,\r\n  PRIMARY KEY (id),\r\n  INDEX index_user_id (user_id)\r\n);"),
 	}
 	filea := &embedded.EmbeddedFile{
 		Filename:    "202406101502_create_table_actions.up.sql",

@@ -15,9 +15,9 @@ CREATE TABLE user_preferences (
   zodiac_id TINYINT DEFAULT 1,
   
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  created_by INT NULL,
+  created_by VARCHAR(255) NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_by INT NULL,
+  updated_by VARCHAR(255) NULL,
   PRIMARY KEY (id),
   INDEX index_user_id (user_id)
 );
